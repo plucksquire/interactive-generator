@@ -1,0 +1,409 @@
+:root {
+    --character-size: 64px;
+    --character-cell: calc(var(--character-size) / 2);
+    --footer-min-height: 220px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "SUSE", sans-serif;
+    margin: 0;
+}
+
+p {
+    margin: 0;
+}
+
+#example-list,
+#diagram {
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    font-family: 'Oxygen', sans-serif;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#main-header {
+    display: flex;
+    flex-direction: column;
+}
+
+#paper-title {
+    text-align: center;
+}
+
+#author-names,
+#affiliations {
+    font-size: 0.7em;
+    color: #333;
+    text-align: right;
+}
+
+#paper-abstract {
+    margin-top: 1em;
+    text-align: justify;
+}
+
+#generation-controls {
+    margin-top: 1em;
+    padding: 1em;
+    border-top: 1px solid #ccc;
+    text-align: right;
+
+    button {
+        font-family: inherit;
+        padding: 0.5em;
+        font-size: inherit;
+    }
+}
+
+#content {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+#sidebar {
+    flex: 0 1 280px;
+}
+
+#diagram {
+    display: flex;
+    justify-content: center;
+    padding: 5px;
+    flex: 1 0 440px;
+    position: relative;
+
+    & > svg {
+        max-height: calc(100vh - var(--footer-min-height));   
+    }
+}
+
+.input-image-container:not([data-cleared]):hover::before {
+    content: "🗑️";
+    inset: 0;
+    background-color: #0003;
+    position: absolute;
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    cursor: pointer;
+    font-size: 32px;
+    color: white;
+}
+
+.target-domain-button {
+    cursor: pointer;
+
+    &:hover {
+        fill: #f6f21c50;
+    }
+}
+
+#dataset-display {
+    flex: 1 0 fit-content;
+    display: flex;
+    flex-direction: column;
+}
+
+#dataset-name {
+    font-family: 'SUSE';
+    border-color: #9393;
+    font-size: inherit;
+    background-image: linear-gradient(0deg, #9393, transparent);
+    border-width: 0 0 1px 0;
+}
+
+#example-list {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 40px 20px;
+    flex: 1 1 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* adds a gradient to the bottom of the list */
+    position: relative;
+    &::after {
+        content: "";
+        display: block;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        height: 20px;
+        background-image: linear-gradient(0deg, white, transparent);
+        pointer-events: none;
+    }
+}
+
+.paired-example {
+    display: grid;
+    grid-template-rows: var(--character-cell) var(--character-cell) calc(var(--character-cell) / 4 * 5);
+    grid-template-columns: repeat(3, var(--character-cell));
+    position: relative;
+}
+
+.example-cell {
+    width: var(--character-cell);
+    height: calc(var(--character-cell) * 1.5);
+
+    &.facing-back,
+    &.facing-front {
+        grid-column: 2 / 3;
+    }
+
+    &.facing-left {
+        grid-column: 1 / 2;
+    }
+
+    &.facing-right {
+        grid-column: 3 / 4;
+    }
+}
+
+.example-image {
+    width: var(--character-width);
+    height: var(--character-width);
+    image-rendering: pixelated;
+
+    #dataset-display & {
+        position: relative;
+        top: -25%;
+        left: -50%;
+        pointer-events: none;
+    }
+}
+
+
+
+@media screen and (min-width: 1000px) {
+    #example-list {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+
+    #diagram {
+        padding: 0 40px;
+    }
+}
+
+
+.paired-example,
+.example-cell {
+    touch-action: none;
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+
+
+
+
+.ai-dragging {
+    position: fixed;
+    z-index: 10;
+    transition-property: scale, left, top, opacity;
+    transition-duration: 200ms;
+    transition-timing-function: ease-out;
+    transform-origin: center center;
+    opacity: 1;
+    animation: playful 600ms ease-in-out 1s infinite;
+    pointer-events: none;
+}
+
+.ai-hovering-dropzone {
+    opacity: 0.8;
+    animation-play-state: paused;
+}
+
+@keyframes playful {
+    0% {
+        rotate: 0deg;
+    }
+
+    25% {
+        rotate: 5deg;
+    }
+
+    75% {
+        rotate: -5deg;
+    }
+
+    1000% {
+        rotate: 0deg;
+    }
+}
+
+.ai-dropped {
+    transition-property: translate, scale, opacity, left, top;
+    transition-duration: 200ms;
+}
+
+.ai-dropped-vanish {
+    scale: 0 !important;
+    opacity: 0 !important;
+    transition-timing-function: ease-in;
+}
+
+.ai-dropped-return {
+    position: fixed;
+    translate: 0 !important;
+    scale: 1 !important;
+    opacity: 1 !important;
+    transition-timing-function: ease-out;
+}
+
+.ai-dropzone {
+    --dash-length: 25px;
+    --dash-width: 5px;
+    --dropzone-border-color: rebeccapurple;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.ai-dropzone::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    background-image: linear-gradient(90deg, var(--dropzone-border-color) 50%, transparent 50%),
+        linear-gradient(90deg, var(--dropzone-border-color) 50%, transparent 50%),
+        linear-gradient(0deg, var(--dropzone-border-color) 50%, transparent 50%),
+        linear-gradient(0deg, var(--dropzone-border-color) 50%, transparent 50%);
+    background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+    background-size: var(--dash-length) var(--dash-width),
+        var(--dash-length) var(--dash-width),
+        var(--dash-width) var(--dash-length),
+        var(--dash-width) var(--dash-length);
+    background-position: left top, right bottom, left bottom, right top;
+    animation: dashing-border 400ms linear infinite;
+    animation-play-state: paused;
+    opacity: 0;
+    transition: opacity 200ms ease-out;
+    pointer-events: none;
+}
+
+.ai-dropzone.ai-droppable::before {
+    animation-play-state: running;
+    animation-duration: 600ms;
+    opacity: 0.4;
+}
+
+.ai-dropzone.ai-dragged-hover::before {
+    animation-play-state: running;
+    animation-duration: 300ms;
+    opacity: 1;
+}
+
+.ai-dropzone {
+    --dropzone-border-color: purple;
+}
+
+.ai-dropzone.ai-droppable::after {
+    content: attr(data-drop-action-label);
+    position: absolute;
+    z-index: 1;
+    color: black;
+    background-color: #fffa;
+    width: calc(100% - 2 * var(--dash-width));
+    text-align: center;
+    opacity: 0.8;
+    transition: opacity 200ms ease-out;
+}
+
+.ai-dropzone.ai-droppable.ai-dragged-hover::after {
+    opacity: 1;
+}
+
+.ai-preview-container.ai-dropzone.ai-droppable {
+    align-self: flex-end;
+}
+
+@keyframes dashing-border {
+    from {
+        background-position: left top, right bottom, left bottom, right top;
+    }
+
+    to {
+        background-position: left var(--dash-length) top, right var(--dash-length) bottom, left bottom var(--dash-length), right top var(--dash-length);
+    }
+}
+
+
+
+
+
+.ai-progress-bar {
+    --progress-bar-thickness: 4px;
+    --progress-bar-length: 100%;
+    --progress-bar-color: white;
+    --progress-bar-bgcolor: rgb(163, 203, 203);
+    position: absolute;
+    inset: 0 0 0 calc(-1 * var(--progress-bar-thickness));
+    background-color: var(--progress-bar-bgcolor);
+}
+
+.ai-progress-bar.horizontal {
+    width: var(--progress-bar-length);
+    height: var(--progress-bar-thickness);
+}
+
+.ai-progress-bar.vertical {
+    height: var(--progress-bar-length);
+    width: var(--progress-bar-thickness);
+}
+
+.ai-progress-bar.hidden {
+    opacity: 0;
+}
+
+.ai-progress-bar::before {
+    content: "";
+    display: block;
+    position: absolute;
+    background-color: var(--progress-bar-color);
+}
+
+.ai-progress-bar.horizontal::before {
+    width: 100%;
+    inset: 0px 0;
+    transform: scaleX(var(--progress-bar-value, 0));
+    transform-origin: left center;
+}
+
+.ai-progress-bar.vertical::before {
+    height: 100%;
+    inset: 0 1px;
+    transform: scaleY(var(--progress-bar-value, 0));
+    transform-origin: top center;
+}
+
+.ai-progress-bar.transition::before {
+    transition: all 200ms ease-out;
+}
+
+
+
+
+
