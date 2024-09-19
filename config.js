@@ -1,4 +1,4 @@
-import { zipDistinct } from '../functional-util.js'
+import { zipDistinct } from './functional-util.js'
 
 export const DOMAINS = {
   front: 'front',
@@ -54,6 +54,57 @@ export const config = {
     name: 'collagan',
     version: 'all,280824,sbgames24',
     inputs: ['targetDomain', 'sourceImages'],
+    debugInfo: {
+      outputNodeNames: [
+        // real output: the last convolution
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_159/Tanh',
+        // decoder partial outputs: the transpose convolutions that upscale 2x (purple boxes)
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_transpose_3/BiasAdd',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_transpose_2/BiasAdd',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_transpose_1/BiasAdd',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_transpose/BiasAdd',
+        // encoder partial outputs: the downscaling convolutions (red boxes)
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_112/Conv2D', // 8 -> 4
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_124/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_136/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_148/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_109/Conv2D', // 16 -> 8
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_121/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_133/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_145/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_106/Conv2D', // 32 -> 16
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_118/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_130/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_142/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_103/Conv2D', // 64 -> 32
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_115/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_127/Conv2D',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/conv2d_139/Conv2D',
+        // encoder partial outputs: last relu right before the downsampling convolutions
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_7/Relu', // 64
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_15/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_23/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_31/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_5/Relu', // 32
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_13/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_21/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_29/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_3/Relu', // 16
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_11/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_19/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_27/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_1/Relu', // 8
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_9/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_17/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_25/Relu',
+        // decoder partial outputs: last relu right before the upsampling convolutions
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_41/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_39/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_37/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_35/Relu',
+        'StatefulPartitionedCall/CollaGANAffluentGenerator/re_lu_33/Relu',
+      ]
+    },
     get checkpoints() {
       return [{
         file: `${modelUrlPrefix}pixel-sides-models/${this.name}/${this.version}/model.json`,

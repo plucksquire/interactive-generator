@@ -3,6 +3,11 @@ import { AsyncTask, dynamicImport, TaskAbortion } from './task.js'
 import { detensorize } from './tf-util.js'
 import { ModelProxy, GeneratorProxy } from './model-proxy.js'
 
+
+// loads tensorflow as soon as someone imports this module
+const tf = await dynamicImport('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.1.0/dist/tf.js', 'tf')
+
+
 export class LocalModel extends ModelProxy {
     #tfLoaded
 
@@ -13,10 +18,6 @@ export class LocalModel extends ModelProxy {
     }
 
     async initialize() {
-        // loads tensorflow
-        this.#tfLoaded = dynamicImport('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.1.0/dist/tf.js', 'tf')
-        this.tf = await this.#tfLoaded
-
         // loads all checkpoints from this architecture
         const checkpoints = this.config.checkpoints
 
@@ -24,12 +25,12 @@ export class LocalModel extends ModelProxy {
             this._generators[domain] = {}
         }
 
-        const loadModelTasks = checkpoints.map(ckpt => new LocalModel.LoadModelTask(this.tf, ckpt))
+        const loadModelTasks = checkpoints.map(ckpt => new LocalModel.LoadModelTask(tf, ckpt))
         const promises = loadModelTasks.map(task => task.run())
 
         for (let promise of promises) {
             promise.then(({ model, ckpt }) => {
-                const generator = new LocalGenerator(this, model, this.tf)
+                const generator = new LocalGenerator(this, model, tf)
                 this._generators[ckpt.source][ckpt.target] = generator
             }).catch(error => {
                 if (error instanceof TaskAbortion) {
@@ -46,7 +47,7 @@ export class LocalModel extends ModelProxy {
     }
 
     async warmup(model) {
-        const zeros = model.inputs.map(input => this.tf.zeros([1, ...input.shape.slice(1)]))
+        const zeros = model.inputs.map(input => tf.zeros([1, ...input.shape.slice(1)]))
         model.predict(zeros).dispose()
         zeros.forEach(z => z.dispose())
         return model
@@ -127,11 +128,15 @@ export class LocalModel extends ModelProxy {
         return class GenerateLocallyTask extends AsyncTask {
             #generator
             #inputs
+            #config
+            #debug
             #tf
 
-            constructor(model, generator, tf, sourceDomain, targetDomain, backend = 'webgl', thread = 'ui', waitOn = []) {
+            constructor(model, generator, tf, sourceDomain, targetDomain, backend = 'webgl', thread = 'ui', waitOn = [], debug = false) {
                 super([model.loaded, ...waitOn])
                 this.#inputs = model.config.inputs
+                this.#config = model.config
+                this.#debug = debug
                 this.#generator = generator
                 this.#tf = tf
 
@@ -197,9 +202,10 @@ export class LocalModel extends ModelProxy {
             }
 
             async _execute(signal, sourceData) {
+                const isDebug = this.#debug
                 const generator = this.#generator
                 const tf = this.#tf
-                const generatedImage = tf.tidy(() => {
+                const outputs = tf.tidy(() => {
                     // const { input, channels } = this.assembleInputs(tf.cast(tf.browser.fromPixels(sourceCanvasEl, 4), 'float32'))
                     // const batchedSourceData = input.reshape([1, 64, 64, channels])
 
@@ -207,19 +213,28 @@ export class LocalModel extends ModelProxy {
                     // const targetData = generator.predict(batchedSourceData, { training: true })
                     const inputs = this.assembleInputs(sourceData)
                     const t0 = tf.util.now()
-                    const targetData = generator.predict(inputs)
+                    const debuggingOutputNames = isDebug ? this.#config.debugInfo.outputNodeNames : null
+                    const outputs = generator.execute(inputs, debuggingOutputNames)
                     const ellapsed = tf.util.now() - t0;
                     console.info(`Took ${ellapsed.toFixed(2)}ms to predict`)
 
-                    const targetDataNormalized = targetData.div(2).add(0.5)
-                    return targetDataNormalized.reshape([64, 64, 4])
+                    const outputImage = isDebug ? outputs[0] : outputs
+                    const outputImageNormalized = outputImage.div(2).add(0.5).reshape([64, 64, 4])
+
+                    if (isDebug) {
+                        const partialOutputs = Object.fromEntries(debuggingOutputNames.map((name, i) => [name, outputs[i]]))
+                        return [outputImageNormalized, partialOutputs]
+                    } else {
+                        return [outputImageNormalized]
+                    }
                 })
 
+                const [generatedImage, debuggingPartialOutputs] = outputs
                 const pixels = await detensorize(generatedImage)
                 generatedImage.dispose()
                 this.progress.set(1)
 
-                return pixels
+                return [pixels, debuggingPartialOutputs]
             }
 
             async cancel() {
@@ -227,6 +242,12 @@ export class LocalModel extends ModelProxy {
             }
         }
     }
+
+    static async checkIfModelIsCached(modelName) {
+        const savedModels = await tf.io.listModels()
+        return Object.keys(savedModels).some(key => key.includes(modelName))
+    }
+        
 }
 
 class LocalGenerator extends GeneratorProxy {
@@ -241,7 +262,7 @@ class LocalGenerator extends GeneratorProxy {
         this.#tf = tf
     }
 
-    createGenerationTask(sourceDomain, targetDomain) {
-        return new LocalModel.GenerateLocallyTask(this.#localModel, this.#tfModel, this.#tf, sourceDomain, targetDomain)
+    createGenerationTask(sourceDomain, targetDomain, debug = false) {
+        return new LocalModel.GenerateLocallyTask(this.#localModel, this.#tfModel, this.#tf, sourceDomain, targetDomain, 'webgl', 'ui', [], debug)
     }
 }

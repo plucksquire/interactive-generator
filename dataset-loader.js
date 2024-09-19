@@ -1,8 +1,8 @@
 const DATASET_SIZES = {
     'tiny-hero': 136,
-    'rpg-maker-2k': 32,
+    'rpg-maker-2000': 32,
     'rpg-maker-xp': 44,
-    'rpg-maker-vx': 61
+    'rpg-maker-vxace': 61
 }
 
 export class DatasetLoader {

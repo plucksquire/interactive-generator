@@ -1,12 +1,32 @@
 :root {
     --character-size: 64px;
     --character-cell: calc(var(--character-size) / 2);
-    --footer-min-height: 220px;
+    --h1-font-size: 1.75rem;
+    --h2-font-size: 1.25rem;
+    --header-min-height: var(--h1-font-size);
+    --content-vertical-padding: 1rem;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body, main {
+    height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-family: "SUSE", sans-serif;
     margin: 0;
+}
+
+h1 {
+    font-size: var(--h1-font-size);
+    margin: var(--h1-vertical-margin) 0;
+}
+
+h2 {
+    font-size: var(--h2-font-size);
 }
 
 p {
@@ -24,18 +44,16 @@ body {
 }
 
 main {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
     overflow: hidden;
 }
 
 #main-header {
-    display: flex;
-    flex-direction: column;
+    padding: 0 1rem;
 }
 
-#paper-title {
+#page-title {
     text-align: center;
 }
 
@@ -52,10 +70,10 @@ main {
 }
 
 #generation-controls {
-    margin-top: 1em;
-    padding: 1em;
-    border-top: 1px solid #ccc;
-    text-align: right;
+    position: absolute;
+    bottom: 1em;
+    right: 1em;
+    z-index: 200;
 
     button {
         font-family: inherit;
@@ -65,25 +83,18 @@ main {
 }
 
 #content {
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1em;
-}
-
-#sidebar {
-    flex: 0 1 280px;
+    position: relative;
+    padding: var(--content-vertical-padding);
 }
 
 #diagram {
     display: flex;
     justify-content: center;
-    padding: 5px;
-    flex: 1 0 440px;
+    flex: 1 0 320px;
     position: relative;
-
-    & > svg {
-        max-height: calc(100vh - var(--footer-min-height));   
+    
+    > svg {
+        max-height: calc(100vh - var(--header-min-height) - 2 * var(--content-vertical-padding));
     }
 }
 
@@ -109,16 +120,28 @@ main {
     }
 }
 
+.clickable-activation-map {
+    cursor: pointer;
+
+    g:has(> &:hover) {
+        stroke-width: 3px;
+    }
+}
+
 #dataset-display {
     flex: 1 0 fit-content;
     display: flex;
     flex-direction: column;
 }
 
+#dataset-display > * {
+    padding: 0 1rem;
+}
+
 #dataset-name {
     font-family: 'SUSE';
     border-color: #9393;
-    font-size: inherit;
+    font-size: 18px;
     background-image: linear-gradient(0deg, #9393, transparent);
     border-width: 0 0 1px 0;
 }
@@ -132,18 +155,26 @@ main {
     flex: 1 1 0;
     overflow-y: auto;
     overflow-x: hidden;
+    padding: 1rem 3rem 1rem 1rem;
 
     /* adds a gradient to the bottom of the list */
     position: relative;
-    &::after {
+    &::before {
         content: "";
         display: block;
         position: fixed;
-        bottom: 0;
         width: 100%;
         height: 20px;
-        background-image: linear-gradient(0deg, white, transparent);
         pointer-events: none;
+        bottom: 0;
+        background-image: linear-gradient(0deg, white, transparent);
+        z-index: 1;
+    }
+}
+
+@container (min-width: 900px) {
+    #example-list {
+        padding-right:5rem;
     }
 }
 
@@ -152,6 +183,10 @@ main {
     grid-template-rows: var(--character-cell) var(--character-cell) calc(var(--character-cell) / 4 * 5);
     grid-template-columns: repeat(3, var(--character-cell));
     position: relative;
+
+    &:hover:not(:has(.example-cell:hover)) .example-image {
+        scale: 1.1;
+    }
 }
 
 .example-cell {
@@ -176,6 +211,7 @@ main {
     width: var(--character-width);
     height: var(--character-width);
     image-rendering: pixelated;
+    transition: scale 200ms ease;
 
     #dataset-display & {
         position: relative;
@@ -183,23 +219,11 @@ main {
         left: -50%;
         pointer-events: none;
     }
-}
 
-
-
-@media screen and (min-width: 1000px) {
-    #example-list {
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        overflow-x: auto;
-        overflow-y: visible;
-    }
-
-    #diagram {
-        padding: 0 40px;
+    .example-cell:hover & {
+        scale: 1.1;
     }
 }
-
 
 .paired-example,
 .example-cell {
@@ -211,8 +235,107 @@ main {
     }
 }
 
+.modal {
+    position: absolute;
+    inset: auto 1em 1em 7em;
+    color: #858585;
+    border: 1px solid currentColor;
+    background-color: #fff3;
+    backdrop-filter: blur(5px);
+    border-radius: 4px;
+    box-shadow: 4px 4px 4px #0003;
+    resize: horizontal;
+    overflow: auto;
+    z-index: 100;
+    padding-top: 0.5em;
+
+    &:popoveropen {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.modal-title,
+.modal-footer {
+    font-size: 0.75em;
+}
+
+.modal-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    border-radius: inherit;
+    font-size: 0.5em;
+    aspect-ratio: 1;
+    background-color: transparent;
+    border-width: 0;
+    color: currentColor;
+    transition: background-color 80ms ease-out;
+
+    &:hover {
+        background-color: #0001;
+    }
+}
+
+.modal-content {
+    padding: 0;
+    min-width: 5em;
+}
+
+#modal-debugging .modal-content {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.activation-map-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.activation-map {
+    image-rendering: pixelated;
+    width: 128px;
+    height: 128px;
+}
+
+.activation-map-info {
+    font-size: 0.75em;
+    text-align: center;
+}
+
+#modal-debugging .modal-footer {
+    align-self: flex-end;
+}
 
 
+
+@media screen and (max-width: 360px) {
+    #diagram {
+        padding: 0;
+    }    
+}
+
+@media screen and (min-width: 680px) {
+    main {
+        grid-template-rows: auto 1fr;
+        grid-template-columns: minmax(480px, 35fr) minmax(auto, 20fr);
+    }
+        
+    #main-header {
+        grid-column: 1 / 3;
+    }
+
+    #content {
+        grid-column: 1 / 2;
+    }
+
+    #dataset-display {
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+    }
+}
 
 
 .ai-dragging {
@@ -360,18 +483,19 @@ main {
     --progress-bar-color: white;
     --progress-bar-bgcolor: rgb(163, 203, 203);
     position: absolute;
-    inset: 0 0 0 calc(-1 * var(--progress-bar-thickness));
     background-color: var(--progress-bar-bgcolor);
 }
 
 .ai-progress-bar.horizontal {
     width: var(--progress-bar-length);
     height: var(--progress-bar-thickness);
+    inset: 0;
 }
 
 .ai-progress-bar.vertical {
     height: var(--progress-bar-length);
     width: var(--progress-bar-thickness);
+    inset: 0 0 0 calc(-1 * var(--progress-bar-thickness));
 }
 
 .ai-progress-bar.hidden {
@@ -404,6 +528,49 @@ main {
 }
 
 
+.contain-progressbar {
+    position: relative;
+    overflow: hidden;
+    --progress-bar-value: 0;
+
+    > span {
+        position: relative;
+        z-index: 1;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(90deg, #87ee82, #a3ffc6, #87ee82);
+        width: calc(var(--progress-bar-value, 0) * 100%);
+        translate: 0% 0;
+        z-index: 0;
+        background-size: 200%;
+        background-repeat: repeat-x;
+        background-position-x: 0%;
+        animation-name: none;
+        transition: width 50ms ease-out, opacity 200ms linear 750ms;
+        border-right: 1px solid #a3ffc6;
+        opacity: 0;
+        box-sizing: border-box;
+        pointer-events: none;
+    }
+    
+    &.transition::before {
+        opacity: 1;
+        transition-property: none;
+        animation: backgrounding 2s linear infinite;;
+    }
+}
 
 
+@keyframes backgrounding {
+    0% {
+        background-position-x: 0%;
+    }
 
+    100% {
+        background-position-x: 200%;
+    }   
+}

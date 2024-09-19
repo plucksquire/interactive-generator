@@ -3,40 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Generator</title>
+    <title>Interactive Character Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxygen&family=SUSE&display=swap">
     <link rel="stylesheet" href="main.css">
     <script src="main.js" defer type="module"></script>
+    <meta name="author" content="Flávio Coutinho">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#dddddd">
+    <meta name="color-scheme" content="light only">
+    <meta name="title" content="Interactive Character Generator">
+    <meta name="description" content="Interactive character generator from the paper 'A Missing Data Imputation GAN for Character Sprite Generation', published in SBGames 2024. ">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fegemo.github.io/interactive-generator">
+    <meta property="og:title" content="Interactive Character Generator">
+    <meta property="og:description" content="Interactive character generator from the paper 'A Missing Data Imputation GAN for Character Sprite Generation', published in SBGames 2024. ">
+    <meta property="og:image" content="https://fegemo.github.io/interactive-generator/social-banner.webp">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://fegemo.github.io/interactive-generator/">
+    <meta property="twitter:title" content="Interactive Character Generator">
+    <meta property="twitter:description" content="Interactive character generator from the paper 'A Missing Data Imputation GAN for Character Sprite Generation', published in SBGames 2024. ">
+    <meta property="twitter:image" content="https://fegemo.github.io/interactive-generator/social-banner.webp">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/site.webmanifest">
+    <link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="favicon/favicon.ico">
 </head>
 <body>
     <main>
         <header id="main-header">
-            <h1 id="paper-title">
-                A Missing Data Imputation GAN for Character Sprite Generation
+            <h1 id="page-title">
+                MDIGAN Character Generator
             </h1>
         </header>
         <div id="content">
-            <div id="sidebar">
-                <div id="paper-meta">
-                    <div id="paper-author-info">
-                        <p id="author-names">Flávio Coutinho and Luiz Chaimowicz</p>
-                        <p id="affiliations">Universidade Federal de Minas Gerais</p>
-                    </div>
-                    <div id="paper-abstract">
-                        <p>
-In this work, we concentrate on creating pixel art character sprites in a target pose
-from images of them facing other three directions. We present a
-novel approach to character generation by framing the problem as a
-missing data imputation task.
-                        </p>
-                    </div>
-                </div>
-                <div id="generation-controls">
-                    <button id="generate">Generate</button>
-                </div>
-            </div>
             <div id="diagram">
                 <svg
                 version="1.1"
@@ -1971,6 +1974,16 @@ missing data imputation task.
                             id="path872" />
                         </g>
                     </g>
+                    <g
+                        data-cell-id="FNUsES6niwyITNyZzEtN-64"
+                        id="g7040">
+<g id="g7020">
+                        <path d="m 281,543 h 14 l 46,46 v 117 h -14 l -46,-46 z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" transform="matrix(-1,0,0,1,622,0)" pointer-events="all" id="path6940"></path>
+                        <path d="M 281 669 L 297 669 L 343 715 L 329 715 Z" fill-opacity="0.05" fill="#000000" stroke="none" transform="matrix(-1,0,0,1,622,0)" pointer-events="all" id="path6960"></path>
+                        <path d="m 281,543 46,46 v 117 l -46,-46 z" fill-opacity="0.1" fill="#000000" stroke="none" transform="matrix(-1,0,0,1,622,0)" pointer-events="all" id="path6980"></path>
+                        <path d="M 327,706 V 589 l -46,-46 m 46,46 h 14" fill="none" stroke="#b85450" stroke-miterlimit="10" transform="matrix(-1,0,0,1,622,0)" pointer-events="all" id="path7000"></path>
+                        </g>
+                    </g>                    
                     <g
                         data-cell-id="FNUsES6niwyITNyZzEtN-81"
                         id="g900">
@@ -4368,6 +4381,44 @@ missing data imputation task.
                     </g>
                 </g>
                 </svg>
+                <dialog class="modal" id="modal-debugging">
+                    <div class="modal-header">
+                        <div class="modal-title"></div>
+                        <button class="modal-close">✖</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="activation-map-container">
+                            <canvas class="activation-map" data-map-index="0"></canvas>
+                            <div class="activation-map-info"></div>
+                        </div>
+                        <div class="activation-map-container">
+                            <canvas class="activation-map" data-map-index="1"></canvas>
+                            <div class="activation-map-info"></div>
+                        </div>
+                        <div class="activation-map-container">
+                            <canvas class="activation-map" data-map-index="2"></canvas>
+                            <div class="activation-map-info"></div>
+                        </div>
+                        <div class="activation-map-container">
+                            <canvas class="activation-map" data-map-index="3"></canvas>
+                            <div class="activation-map-info"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <nav class="activation-map-controls">
+                            <button class="navigate-map" data-direction="-1">«</button>
+                            <button class="navigate-map" data-direction="1">»</button>
+                        </nav>
+                    </div>
+                </dialog>
+            </div>
+            <div id="generation-controls">
+                <button id="load-model" class="contain-progressbar">
+                    <span>Load Model <small>(400MB)</small></span>
+                </button>
+                <button id="generate" class="contain-progressbar" disabled>
+                    <span>Generate</span>
+                </button>
             </div>
         </div>
 
@@ -4376,9 +4427,9 @@ missing data imputation task.
                 Examples from
                 <select id="dataset-name">
                     <option value="tiny-hero">Tiny Hero</option>
-                    <option value="rpg-maker-2k">RPG Maker 2k</option>
+                    <option value="rpg-maker-2000">RPG Maker 2k</option>
                     <option value="rpg-maker-xp" selected>RPG Maker XP</option>
-                    <option value="rpg-maker-vx">RPG Maker VX Ace</option>
+                    <option value="rpg-maker-vxace">RPG Maker VX Ace</option>
                 </select>
             </h2>
             <div id="example-list">
